@@ -1,0 +1,32 @@
+# Render Blueprint: Render -> New -> Blueprint -> pick this repo.
+# Creates the FastAPI backend on the free plan. Fill in the "sync: false" values in the Render dashboard.
+services:
+  - type: web
+    name: ai-syllabus-planner-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.10"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL        # Neon connection string
+        sync: false
+      - key: FRONTEND_URL        # e.g. https://ai-syllabus-planner.vercel.app
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI # https://<your-render-app>.onrender.com/api/google/callback
+        sync: false
+      - key: DEFAULT_TIMEZONE
+        value: America/Chicago

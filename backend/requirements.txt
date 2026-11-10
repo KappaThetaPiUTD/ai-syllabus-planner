@@ -9,5 +9,5 @@ pypdf>=4.0
 httpx>=0.27
 anthropic>=0.70
 python-dateutil>=2.9
-# Uncomment to use PostgreSQL / Supabase instead of SQLite:
-# psycopg[binary]>=3.1
+# PostgreSQL driver (used when DATABASE_URL is a postgres URL, e.g. Neon in production)
+psycopg[binary]>=3.1

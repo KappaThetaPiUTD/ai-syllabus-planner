@@ -104,11 +104,47 @@ The app asks only for the `calendar.events` scope. It syncs only deadlines the s
 
 1. Sign up / log in. 2. Create course **CS 3345**. 3. Upload `sample/CS3345_syllabus.pdf`. 4. Watch it process. 5. Review the extracted items. 6. Change one date. 7. Confirm, then open the **Calendar**. 8. Connect and sync Google Calendar. 9. Ask the assistant *"What do I have due next week?"*
 
-## Deployment
+## Hosting it for free
 
-- **Frontend → Vercel**: import the `frontend` folder and set `NEXT_PUBLIC_API_URL` to the backend URL.
-- **Backend → Render / Railway / Fly.io**: start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Set the `.env` variables, use PostgreSQL/Supabase for `DATABASE_URL`, set `FRONTEND_URL` to the Vercel URL, and register the production `GOOGLE_REDIRECT_URI` with Google.
-- Uploaded PDFs are stored in `backend/uploads/`. On hosts with temporary disks, move them to S3/Supabase Storage.
+| Part | Service (free plan) | Notes |
+|---|---|---|
+| Database | **Neon** (neon.tech) | Free Postgres; sleeps when idle and wakes automatically |
+| Backend | **Render** (render.com) | Free web service; sleeps after 15 min idle, ~1 min to wake |
+| Website | **Vercel** (vercel.com) | Free for hobby projects, made for Next.js |
+
+### 1. Database (Neon)
+1. Sign up at https://neon.tech with GitHub and create a project.
+2. Copy the **connection string** (`postgresql://...neon.tech/neondb?sslmode=require`). The app creates its tables on first start.
+
+### 2. Backend (Render)
+1. Sign up at https://render.com with GitHub.
+2. Choose **New → Blueprint** and pick this repo. Render reads `render.yaml`.
+3. Fill in the values it asks for:
+   - `DATABASE_URL`: the Neon connection string
+   - `GEMINI_API_KEY` (and optionally `GROQ_API_KEY`)
+   - `FRONTEND_URL`: put `http://localhost:3000` for now and update it after step 3
+   - Google values: leave blank for now (see step 4)
+4. Deploy, then copy the backend URL, e.g. `https://ai-syllabus-planner-api.onrender.com`. Check `https://.../api/health`.
+
+### 3. Website (Vercel)
+1. Sign up at https://vercel.com with GitHub, then **Add New → Project** and import this repo.
+2. Set **Root Directory** to `frontend`.
+3. Add the environment variable `NEXT_PUBLIC_API_URL` = your Render backend URL (no trailing slash).
+4. Deploy and copy the site URL, e.g. `https://ai-syllabus-planner.vercel.app`.
+5. In Render, set `FRONTEND_URL` to that Vercel URL (this allows the site through CORS) and save. Render redeploys.
+
+### 4. Google Calendar in production
+In Google Cloud Console → Credentials → your OAuth client, add the authorized redirect URI
+`https://<your-render-app>.onrender.com/api/google/callback`. Then set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and
+`GOOGLE_REDIRECT_URI` (that same URL) in Render. While the OAuth app is in "Testing" mode, only Google accounts listed as
+**test users** can connect.
+
+### Free-tier caveats
+- **First load after idle is slow:** the free Render backend sleeps after 15 minutes. The first request then takes about a minute.
+  Open the site a minute before a demo.
+- **Uploaded PDFs are temporary:** Render's free disk is wiped on restart. Extracted deadlines are safe in Neon, but
+  "Re-run extraction" won't work on old uploads.
+- Pushing to `main` redeploys both Vercel and Render automatically.
 
 ## Notes
 
