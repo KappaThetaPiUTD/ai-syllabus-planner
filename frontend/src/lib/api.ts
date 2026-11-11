@@ -1,5 +1,10 @@
 // Thin client for the FastAPI backend. The login token lives in localStorage.
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Set in frontend/.env.production for the deployed site; local dev talks to localhost.
+const PRODUCTION_API_URL = "https://ai-syllabus-planner-api.onrender.com";
+export const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production" ? PRODUCTION_API_URL : "http://localhost:8000")
+).replace(/\/+$/, "");
 
 export type EventType = "exam" | "quiz" | "homework" | "project" | "reading" | "lab" | "presentation" | "other";
 export const EVENT_TYPES: EventType[] = ["exam", "quiz", "homework", "project", "reading", "lab", "presentation", "other"];

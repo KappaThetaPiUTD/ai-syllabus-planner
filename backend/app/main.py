@@ -22,7 +22,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url, "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[settings.frontend_url.rstrip("/"), "http://localhost:3000", "http://127.0.0.1:3000"],
+    # This project's Vercel deployments (production + preview URLs), e.g.
+    # https://ai-syllabus-planner.vercel.app, https://ai-syllabus-planner-git-main-xyz.vercel.app
+    allow_origin_regex=r"https://ai-syllabus-planner[a-z0-9-]*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
