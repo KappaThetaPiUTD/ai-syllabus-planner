@@ -59,7 +59,7 @@ Or run `start.ps1` from the project root to open both servers in separate window
 | `DATABASE_URL` | Defaults to SQLite (`syllabus.db`). For PostgreSQL/Supabase use `postgresql+psycopg://user:pass@host:5432/db` and `pip install "psycopg[binary]"`. |
 | `GEMINI_API_KEY` | **Free.** Turns on AI extraction and the AI assistant. Get it at https://aistudio.google.com → "Get API key" (no credit card). |
 | `GROQ_API_KEY` | **Free, optional backup.** Used if Gemini fails or hits its daily limit. Get it at https://console.groq.com/keys. Text only, so it can't read scanned PDFs. |
-| `GEMINI_MODEL` / `GROQ_MODEL` | Default to `gemini-flash-latest` / `llama-3.3-70b-versatile`. |
+| `GEMINI_MODEL` / `GROQ_MODEL` | Default to `gemini-3.5-flash` / `llama-3.3-70b-versatile`. |
 | `ANTHROPIC_API_KEY` | Optional, paid. Not needed. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Turn on the Google Calendar integration. |
 | `GOOGLE_REDIRECT_URI` | Must exactly match the URI registered with Google. Default: `http://localhost:8000/api/google/callback`. |

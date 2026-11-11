@@ -23,6 +23,8 @@ settings = get_settings()
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+# Tried after GEMINI_MODEL, in order (all available on the free tier as of Nov 2026).
+GEMINI_FALLBACK_MODELS = ("gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite")
 
 
 class LLMError(Exception):
@@ -83,17 +85,26 @@ def _gemini(system: str, user_text: str, schema: dict | None, pdf: bytes | None,
         "contents": [{"role": "user", "parts": parts}],
         "generationConfig": gen,
     }
-    models = [settings.gemini_model] + [m for m in ("gemini-flash-latest", "gemini-2.5-flash") if m != settings.gemini_model]
+    # Free-tier quotas are per model, so if one model is busy, retired or out of quota, try the next.
+    models = [settings.gemini_model] + [m for m in GEMINI_FALLBACK_MODELS if m != settings.gemini_model]
+    # Reading a long PDF can take a while; a short text answer should be quick.
+    timeout = httpx.Timeout(150.0 if pdf is not None else 45.0, connect=15.0)
     last = ""
     for model in models:
-        r = httpx.post(
-            GEMINI_URL.format(model=model),
-            headers={"x-goog-api-key": settings.gemini_api_key},
-            json=body,
-            timeout=180,
-        )
-        if r.status_code == 404:  # model name retired -> try the next one
-            last = f"model {model} not found"
+        try:
+            r = httpx.post(
+                GEMINI_URL.format(model=model),
+                headers={"x-goog-api-key": settings.gemini_api_key},
+                json=body,
+                timeout=timeout,
+            )
+        except httpx.TimeoutException:
+            last = f"{model} timed out"
+            log.warning("Gemini %s timed out, trying next model", model)
+            continue
+        if r.status_code in (404, 429, 500, 503):  # retired / out of quota / overloaded -> next model
+            last = str(_err(f"Gemini ({model})", r))
+            log.warning(last)
             continue
         if r.status_code != 200:
             raise _err("Gemini", r)
@@ -105,7 +116,7 @@ def _gemini(system: str, user_text: str, schema: dict | None, pdf: bytes | None,
         if not text.strip():
             raise LLMError(f"Gemini returned empty text (finishReason={cands[0].get('finishReason')})")
         return text
-    raise LLMError(f"Gemini: {last}")
+    raise LLMError(f"Gemini: no model answered ({last})")
 
 
 # ---------------------------------------------------------------- Groq
