@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -6,6 +8,7 @@ from ..auth import get_current_user
 from ..database import get_db
 from ..models import Course, User
 from ..schemas import CourseIn, CourseOut
+from ..services import gcal
 from .common import get_course
 
 router = APIRouter(prefix="/api/courses", tags=["courses"])
@@ -52,6 +55,16 @@ def update_course(
 
 @router.delete("/{course_id}")
 def delete_course(course_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db.delete(get_course(db, user, course_id))
+    """Remove a course with all its deadlines and syllabi, including their Google Calendar copies and PDFs."""
+    course = get_course(db, user, course_id)
+    removed_from_google = 0
+    for ev in course.events:
+        if ev.google_event_id:
+            gcal.delete_event(user, ev, db)
+            removed_from_google += 1
+    for s in course.syllabi:
+        Path(s.stored_path).unlink(missing_ok=True)
+    events, syllabi = len(course.events), len(course.syllabi)
+    db.delete(course)
     db.commit()
-    return {"ok": True}
+    return {"ok": True, "events_deleted": events, "syllabi_deleted": syllabi, "removed_from_google": removed_from_google}

@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import CourseForm from "@/components/CourseForm";
+import RemoveCourseDialog from "@/components/RemoveCourseDialog";
+import { useAuth } from "@/components/AuthProvider";
 import EventForm from "@/components/EventForm";
 import { ErrorBox, Modal, TypeBadge } from "@/components/ui";
 import { api, fmtDate, fmtTime, providerName, type CalEvent, type Course, type Syllabus } from "@/lib/api";
@@ -25,6 +27,8 @@ export default function CourseDetail() {
   const [events, setEvents] = useState<CalEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const { user } = useAuth();
   const [editEvent, setEditEvent] = useState<CalEvent | null | "new">(null);
 
   async function load() {
@@ -46,11 +50,6 @@ export default function CourseDetail() {
     load();
   }, [id]);
 
-  async function removeCourse() {
-    if (!course || !window.confirm(`Delete ${course.code} and all of its deadlines?`)) return;
-    await api(`/api/courses/${course.id}`, { method: "DELETE" });
-    router.push("/courses");
-  }
 
   async function removeSyllabus(s: Syllabus) {
     if (!window.confirm(`Delete ${s.filename} and the deadlines extracted from it?`)) return;
@@ -85,8 +84,8 @@ export default function CourseDetail() {
           <button className="btn-secondary" onClick={() => setEditing(true)}>
             Edit
           </button>
-          <button className="btn-ghost text-red-600" onClick={removeCourse}>
-            Delete
+          <button className="btn-ghost text-red-600 hover:bg-red-50" onClick={() => setRemoving(true)}>
+            🗑️ Remove course
           </button>
         </div>
       </div>
@@ -147,6 +146,12 @@ export default function CourseDetail() {
         </div>
       </div>
 
+      <RemoveCourseDialog
+        course={removing ? course : null}
+        googleConnected={user?.google_connected}
+        onClose={() => setRemoving(false)}
+        onRemoved={() => router.push("/courses")}
+      />
       <Modal open={editing} onClose={() => setEditing(false)} title="Edit course">
         <CourseForm
           course={course}

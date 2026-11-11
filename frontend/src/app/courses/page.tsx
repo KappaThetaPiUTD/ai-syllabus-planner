@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
 import CourseForm from "@/components/CourseForm";
+import RemoveCourseDialog from "@/components/RemoveCourseDialog";
+import { useAuth } from "@/components/AuthProvider";
 import { Empty, ErrorBox, Modal } from "@/components/ui";
 import { api, type Course } from "@/lib/api";
 
@@ -12,6 +14,8 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [welcome, setWelcome] = useState(false);
+  const [removing, setRemoving] = useState<Course | null>(null);
+  const { user } = useAuth();
 
   async function load() {
     try {
@@ -46,8 +50,21 @@ export default function CoursesPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {courses?.map((c) => (
-          <Link key={c.id} href={`/courses/${c.id}`} className="card block border-t-4 transition hover:shadow-md" style={{ borderTopColor: c.color }}>
-            <div className="text-lg font-bold">{c.code}</div>
+          <Link key={c.id} href={`/courses/${c.id}`} className="card group relative block border-t-4 transition hover:shadow-md" style={{ borderTopColor: c.color }}>
+            <button
+              type="button"
+              title={`Remove ${c.code}`}
+              aria-label={`Remove ${c.code}`}
+              onClick={(e) => {
+                e.preventDefault(); // don't open the course
+                e.stopPropagation();
+                setRemoving(c);
+              }}
+              className="absolute right-3 top-3 rounded-md px-2 py-1 text-xs font-medium text-slate-400 hover:bg-red-50 hover:text-red-600"
+            >
+              🗑️ Remove
+            </button>
+            <div className="pr-20 text-lg font-bold">{c.code}</div>
             <div className="truncate text-sm text-slate-600">{c.name || "—"}</div>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
               {c.instructor && <span>👤 {c.instructor}</span>}
@@ -64,6 +81,16 @@ export default function CoursesPage() {
           </Link>
         ))}
       </div>
+
+      <RemoveCourseDialog
+        course={removing}
+        googleConnected={user?.google_connected}
+        onClose={() => setRemoving(null)}
+        onRemoved={() => {
+          setRemoving(null);
+          load();
+        }}
+      />
 
       <Modal open={adding} onClose={() => setAdding(false)} title={welcome ? "Welcome! Add your first course" : "Add a course"}>
         <CourseForm
