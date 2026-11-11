@@ -2,7 +2,7 @@
 
 Upload a college syllabus. AI finds every exam, quiz, homework, project and reading with its date. You review and fix the results, see everything on one dashboard and calendar, and sync to **Google Calendar**.
 
-This is the full implementation of `AI Syllabus Planner.docx`. The **About** page inside the app (`/about`) walks through the whole project: idea, features, AI, architecture, database, team roles, timeline, risks and the demo script.
+This is the full implementation of `AI Syllabus Planner.docx`.
 
 ```
 syllabus-planner/
@@ -21,7 +21,7 @@ syllabus-planner/
 │   │       └── gcal.py        Google OAuth 2.0 + Calendar API
 │   └── requirements.txt
 ├── frontend/           Next.js 14 + React + TypeScript + Tailwind
-│   └── src/app/        /, /about, /login, /signup, /dashboard, /courses, /courses/[id],
+│   └── src/app/        /, /login, /signup, /dashboard, /courses, /courses/[id],
 │                       /upload, /review/[id], /events, /calendar, /assistant, /settings
 └── sample/CS3345_syllabus.pdf   demo syllabus
 ```

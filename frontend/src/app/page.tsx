@@ -28,14 +28,14 @@ export default function Home() {
             <Link href="/signup" className="btn-primary px-6 py-3 text-base">
               Get started free
             </Link>
-            <Link href="/about" className="btn-secondary px-6 py-3 text-base">
+            <a href="#how-it-works" className="btn-secondary px-6 py-3 text-base">
               How it works
-            </Link>
+            </a>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <section id="how-it-works" className="mx-auto max-w-6xl scroll-mt-4 px-4 py-16 sm:px-6">
         <h2 className="text-center text-2xl font-bold">How it works</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {STEPS.map(([title, text], i) => (

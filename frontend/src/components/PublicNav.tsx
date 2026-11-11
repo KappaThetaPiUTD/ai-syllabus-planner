@@ -12,9 +12,6 @@ export default function PublicNav() {
           <span className="text-2xl">🎓</span> AI Syllabus Planner
         </Link>
         <nav className="flex items-center gap-2">
-          <Link href="/about" className="btn-ghost">
-            About
-          </Link>
           {user ? (
             <Link href="/dashboard" className="btn-primary">
               Open dashboard

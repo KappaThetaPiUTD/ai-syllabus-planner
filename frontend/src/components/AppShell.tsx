@@ -13,7 +13,6 @@ const NAV = [
   { href: "/calendar", label: "Calendar", icon: "📅" },
   { href: "/assistant", label: "Ask the Assistant", icon: "💬" },
   { href: "/settings", label: "Google Calendar", icon: "🔗" },
-  { href: "/about", label: "About the Project", icon: "ℹ️" },
 ];
 
 /** Layout for logged-in pages: sidebar navigation + auth guard. */
