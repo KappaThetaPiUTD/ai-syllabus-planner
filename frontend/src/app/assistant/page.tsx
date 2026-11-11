@@ -76,7 +76,11 @@ export default function AssistantPage() {
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [msgs]);
+  // Braces matter: an effect may only return a cleanup function, and newer browsers make
+  // scrollIntoView() return a Promise, which React would try to call as cleanup ("destroy is not a function").
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs]);
 
   async function ask(question: string) {
     if (!question.trim() || busy) return;
