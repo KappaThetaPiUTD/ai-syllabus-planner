@@ -12,6 +12,54 @@ interface Msg {
   method?: string;
 }
 
+/** Renders the small subset of Markdown the AI uses: headings, bullet lists and **bold**. */
+function inline(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? <strong key={i}>{part.slice(2, -2)}</strong> : <span key={i}>{part}</span>,
+  );
+}
+
+function FormattedText({ text }: { text: string }) {
+  const blocks: React.ReactNode[] = [];
+  let list: string[] = [];
+  const flush = () => {
+    if (list.length) {
+      blocks.push(
+        <ul key={blocks.length} className="my-1 list-disc space-y-0.5 pl-5">
+          {list.map((li, i) => (
+            <li key={i}>{inline(li)}</li>
+          ))}
+        </ul>,
+      );
+      list = [];
+    }
+  };
+  for (const raw of text.split("\n")) {
+    const line = raw.trim();
+    const bullet = line.match(/^(?:[*•-]|\d+\.)\s+(.*)$/);
+    if (bullet) {
+      list.push(bullet[1]);
+      continue;
+    }
+    flush();
+    if (!line) continue;
+    const heading = line.match(/^#{1,6}\s+(.*)$/);
+    blocks.push(
+      heading ? (
+        <p key={blocks.length} className="mt-2 font-semibold">
+          {inline(heading[1].replace(/\*\*/g, ""))}
+        </p>
+      ) : (
+        <p key={blocks.length} className="my-1">
+          {inline(line)}
+        </p>
+      ),
+    );
+  }
+  flush();
+  return <div>{blocks}</div>;
+}
+
 const SUGGESTIONS = [
   "What do I have due next week?",
   "When are my exams?",
@@ -58,7 +106,7 @@ export default function AssistantPage() {
           {msgs.map((m, i) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-800"}`}>
-                <div className="whitespace-pre-wrap">{m.text}</div>
+                {m.role === "assistant" ? <FormattedText text={m.text} /> : <div className="whitespace-pre-wrap">{m.text}</div>}
                 {m.events && m.events.length > 0 && m.method !== "rules" && (
                   <div className="mt-3 space-y-1 border-t border-slate-200 pt-2">
                     {m.events.slice(0, 6).map((e) => (
