@@ -1,5 +1,7 @@
 # AI Syllabus Planner
 
+*Pledge project: ai-syllabus-planner*
+
 Upload a college syllabus. AI finds every exam, quiz, homework, project and reading with its date. You review and fix the results, see everything on one dashboard and calendar, and sync to **Google Calendar**.
 
 This is the full implementation of `AI Syllabus Planner.docx`.
